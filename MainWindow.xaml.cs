@@ -14,20 +14,12 @@ using Path = System.IO.Path;
 namespace HostManager
 {
     /// <summary>
-    /// Class to hold application state.
-    /// </summary>
-    public class State
-    {
-        public ObservableCollection<HostModel> HostCollection { get; set; } = new();
-    }
-
-    /// <summary>
     /// Interaction logic for MainWindow.xaml
     /// </summary>
     public partial class MainWindow : Window
     {
         private readonly FileSystemWatcher hostsFileWatcher;
-        private State appState { get; set; } = new();
+        private StateModel appState { get; set; } = new();
         private readonly string etcFolder = Path.Join(Environment.GetEnvironmentVariable("windir"), @"System32\drivers\etc");
         private readonly System.Timers.Timer persistTimer = new();
         private readonly SemaphoreSlim refreshSemaphore = new(1, 1);
@@ -143,8 +135,11 @@ namespace HostManager
                         .Aggregate("", (m, x) => m + x);
 
                     string host = trimmedLine.Substring(ip.Length).Trim()
-                        .TakeWhile(x => !char.IsWhiteSpace(x))
+                        .TakeWhile(x => !char.IsWhiteSpace(x) && x != '#')
                         .Aggregate("", (m, x) => m + x);
+
+                    int commentStartIx = trimmedLine.IndexOf("#");
+                    string comment = commentStartIx != -1 ? trimmedLine.Substring(trimmedLine.IndexOf("#") + 1).Trim() : "";
 
                     if (IPAddress.TryParse(ip, out _))
                     {
@@ -153,7 +148,8 @@ namespace HostManager
                             Host = host,
                             Address = ip,
                             Enabled = line[0] != '#',
-                            LineNumber = lineNumber
+                            LineNumber = lineNumber,
+                            Comment = comment
                         };
                         hostModel.Clean();
 
