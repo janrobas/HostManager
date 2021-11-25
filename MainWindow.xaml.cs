@@ -1,14 +1,14 @@
 ﻿using HostManager.Models;
 using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Data;
 using System.IO;
 using System.Linq;
-using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Input;
 using Path = System.IO.Path;
 
 namespace HostManager
@@ -38,7 +38,7 @@ namespace HostManager
             hostsFileWatcher.EnableRaisingEvents = true;
 
             persistTimer.Elapsed += (_, _) => PersistToHosts();
-            persistTimer.Interval = 2000;
+            persistTimer.Interval = 500;
             persistTimer.Start();
 
             _ = Refresh(cancellationToken);
@@ -55,30 +55,54 @@ namespace HostManager
 
         private void PersistToHosts()
         {
-            if (!this.appState.HostCollection.Any(x => x.Dirty))
+            if (!this.appState.HostCollection.Any(x => x.Dirty || x.Deleted))
             {
                 return;
             }
 
-            string[] lines = File.ReadAllLines(Path.Join(etcFolder, "hosts"));
-
-            foreach (var host in this.appState.HostCollection.Where(x => x.Dirty))
+            bool mustRefresh = false;
+            List<string> lines = null;
+            try
             {
-                if (host.Enabled)
+                hostsFileWatcher.EnableRaisingEvents = false;
+
+                lines = File.ReadAllLines(Path.Join(etcFolder, "hosts")).ToList();
+
+                foreach (var host in this.appState.HostCollection.Where(x => x.Dirty && x.LineNumber.HasValue))
                 {
-                    lines[host.LineNumber] = lines[host.LineNumber].Trim(new char[] { '#', ' ', '\t' });
-                }
-                else
-                {
-                    lines[host.LineNumber] = $"#{lines[host.LineNumber]}";
+                    if (!host.IsValid)
+                    {
+                        host.Deleted = true;
+                        break;
+                    }
+
+                    lines[host.LineNumber.Value] = host.ToString();
+                    host.Clean();
                 }
 
-                host.Clean();
+                foreach (var host in this.appState.HostCollection.Where(x => x.Dirty && !x.LineNumber.HasValue))
+                {
+                    lines.Add(host.ToString());
+                    host.LineNumber = lines.Count() - 1;
+                }
+
+                foreach (var host in this.appState.HostCollection.Where(x => x.Deleted))
+                {
+                    lines.RemoveAt(host.LineNumber.Value);
+                    mustRefresh = true;
+                }
+
+                File.WriteAllLines(Path.Join(etcFolder, "hosts"), lines);
             }
+            finally
+            {
+                hostsFileWatcher.EnableRaisingEvents = true;
 
-            hostsFileWatcher.EnableRaisingEvents = false;
-            File.WriteAllLines(Path.Join(etcFolder, "hosts"), lines);
-            hostsFileWatcher.EnableRaisingEvents = true;
+                if (lines is not null && mustRefresh)
+                {
+                    _ = this.Refresh(lines);
+                }
+            }
         }
 
         private async void OnChanged(object sender, FileSystemEventArgs e)
@@ -92,7 +116,7 @@ namespace HostManager
 
             while (true)
             {
-                await Task.Delay(300);
+                await Task.Delay(500);
 
                 if (cancellationToken.IsCancellationRequested)
                 {
@@ -112,6 +136,11 @@ namespace HostManager
                 }
             }
 
+            await Refresh(lines);
+        }
+
+        public async Task Refresh(List<string> lines)
+        {
             try
             {
                 refreshSemaphore.Wait(cancellationToken);
@@ -141,16 +170,17 @@ namespace HostManager
                     int commentStartIx = trimmedLine.IndexOf("#");
                     string comment = commentStartIx != -1 ? trimmedLine.Substring(trimmedLine.IndexOf("#") + 1).Trim() : "";
 
-                    if (IPAddress.TryParse(ip, out _))
+                    HostModel hostModel = new()
                     {
-                        HostModel hostModel = new()
-                        {
-                            Host = host,
-                            Address = ip,
-                            Enabled = line[0] != '#',
-                            LineNumber = lineNumber,
-                            Comment = comment
-                        };
+                        Host = host,
+                        Address = ip,
+                        Enabled = line[0] != '#',
+                        LineNumber = lineNumber,
+                        Comment = comment
+                    };
+
+                    if (hostModel.IsValid)
+                    {
                         hostModel.Clean();
 
                         await this.Dispatcher.InvokeAsync(() => this.appState.HostCollection.Add(hostModel));
@@ -161,6 +191,34 @@ namespace HostManager
             {
                 refreshSemaphore.Release();
             }
+        }
+
+        private void HostsDataGrid_PreviewKeyDown(object sender, System.Windows.Input.KeyEventArgs e)
+        {
+            if (e.Key != Key.Delete)
+            {
+                return;
+            }
+
+            if (sender is not DataGrid)
+            {
+                return;
+            }
+
+            var grid = sender as DataGrid;
+
+            if (grid.SelectedItem is null)
+            {
+                return;
+            }
+
+            var host = grid.SelectedItem as HostModel;
+
+            var res = MessageBox.Show("Are you sure want to delete selected host?", "Confirmation!", MessageBoxButton.YesNo, MessageBoxImage.Question);
+
+            host.Deleted = res == MessageBoxResult.Yes;
+
+            e.Handled = true;
         }
     }
 }
