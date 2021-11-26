@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:HostManager"
         mc:Ignorable="d"
-        Title="Hosts Enabler Disabler" Height="460" Width="800" Icon="/icon.png">
+        Title="Hosts Enabler Disabler" Height="460" Width="800" Icon="/icon.png" KeyDown="Window_KeyDown">
     <DataGrid AutoGenerateColumns="False" x:Name="HostsDataGrid" ItemsSource="{Binding Path=HostCollection, Mode=TwoWay}" GridLinesVisibility="None" FontSize="14" PreviewKeyDown="HostsDataGrid_PreviewKeyDown">
         <DataGrid.CellStyle>
             <Style TargetType="DataGridCell">

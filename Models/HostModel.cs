@@ -30,7 +30,7 @@ namespace HostManager.Models
             }
         }
 
-        public bool dirty { get; set; }
+        public bool dirty = false;
         public bool Dirty
         {
             get
@@ -46,7 +46,7 @@ namespace HostManager.Models
         public int? LineNumber { get; set; }
 
 
-        public string address;
+        public string address = "127.0.0.1";
         public string Address
         {
             get => this.address;
@@ -79,7 +79,7 @@ namespace HostManager.Models
             }
         }
 
-        private bool enabled;
+        private bool enabled = true;
 
         public bool Enabled
         {

@@ -19,7 +19,7 @@ namespace HostManager
     public partial class MainWindow : Window
     {
         private readonly FileSystemWatcher hostsFileWatcher;
-        private StateModel appState { get; set; } = new();
+        private StateModel AppState { get; set; } = new();
         private readonly string etcFolder = Path.Join(Environment.GetEnvironmentVariable("windir"), @"System32\drivers\etc");
         private readonly System.Timers.Timer persistTimer = new();
         private readonly SemaphoreSlim refreshSemaphore = new(1, 1);
@@ -28,7 +28,7 @@ namespace HostManager
 
         public MainWindow()
         {
-            this.DataContext = this.appState;
+            this.DataContext = this.AppState;
             this.cancellationToken = this.cancellationSource.Token;
 
             hostsFileWatcher = new(etcFolder);
@@ -55,7 +55,7 @@ namespace HostManager
 
         private void PersistToHosts()
         {
-            if (!this.appState.HostCollection.Any(x => x.Dirty || x.Deleted))
+            if (!this.AppState.HostCollection.Any(x => x.Dirty || x.Deleted))
             {
                 return;
             }
@@ -68,28 +68,39 @@ namespace HostManager
 
                 lines = File.ReadAllLines(Path.Join(etcFolder, "hosts")).ToList();
 
-                foreach (var host in this.appState.HostCollection.Where(x => x.Dirty && x.LineNumber.HasValue))
+                foreach (var host in this.AppState.HostCollection.Where(x => x.Dirty && x.LineNumber.HasValue))
                 {
                     if (!host.IsValid)
                     {
-                        host.Deleted = true;
-                        break;
+                        continue;
                     }
 
                     lines[host.LineNumber.Value] = host.ToString();
                     host.Clean();
                 }
 
-                foreach (var host in this.appState.HostCollection.Where(x => x.Dirty && !x.LineNumber.HasValue))
+                foreach (var host in this.AppState.HostCollection.Where(x => x.Dirty && !x.LineNumber.HasValue))
                 {
+                    if (!host.IsValid)
+                    {
+                        continue;
+                    }
+
                     lines.Add(host.ToString());
-                    host.LineNumber = lines.Count() - 1;
+                    host.LineNumber = lines.Count - 1;
                 }
 
-                foreach (var host in this.appState.HostCollection.Where(x => x.Deleted))
+                foreach (var host in this.AppState.HostCollection.Where(x => x.Deleted))
                 {
-                    lines.RemoveAt(host.LineNumber.Value);
-                    mustRefresh = true;
+                    if (host.LineNumber.HasValue)
+                    {
+                        lines.RemoveAt(host.LineNumber.Value);
+                        mustRefresh = true;     // line numbers for hosts are different, so it's easier to simply refresh from file
+                    }
+                    else
+                    {
+                        _ = this.Dispatcher.InvokeAsync(() => this.AppState.HostCollection.Remove(host));
+                    }
                 }
 
                 File.WriteAllLines(Path.Join(etcFolder, "hosts"), lines);
@@ -116,7 +127,7 @@ namespace HostManager
 
             while (true)
             {
-                await Task.Delay(500);
+                await Task.Delay(500, cancellationToken);
 
                 if (cancellationToken.IsCancellationRequested)
                 {
@@ -145,7 +156,7 @@ namespace HostManager
             {
                 refreshSemaphore.Wait(cancellationToken);
 
-                await this.Dispatcher.InvokeAsync(() => this.appState.HostCollection.Clear());
+                await this.Dispatcher.InvokeAsync(() => this.AppState.HostCollection.Clear());
 
                 for (int lineNumber = 0; lineNumber < lines.Count; lineNumber++)
                 {
@@ -168,7 +179,9 @@ namespace HostManager
                         .Aggregate("", (m, x) => m + x);
 
                     int commentStartIx = trimmedLine.IndexOf("#");
-                    string comment = commentStartIx != -1 ? trimmedLine.Substring(trimmedLine.IndexOf("#") + 1).Trim() : "";
+                    string comment = commentStartIx != -1 
+                        ? trimmedLine.Substring(trimmedLine.IndexOf("#") + 1).Trim() 
+                        : "";
 
                     HostModel hostModel = new()
                     {
@@ -183,7 +196,7 @@ namespace HostManager
                     {
                         hostModel.Clean();
 
-                        await this.Dispatcher.InvokeAsync(() => this.appState.HostCollection.Add(hostModel));
+                        await this.Dispatcher.InvokeAsync(() => this.AppState.HostCollection.Add(hostModel));
                     }
                 }
             }
@@ -207,18 +220,24 @@ namespace HostManager
 
             var grid = sender as DataGrid;
 
-            if (grid.SelectedItem is null)
+            if (grid.SelectedItem is not HostModel host)
             {
                 return;
             }
 
-            var host = grid.SelectedItem as HostModel;
+            var confirmation = MessageBox.Show($"Are you sure want to delete selected host {host.Host}?", "Confirmation", MessageBoxButton.YesNo, MessageBoxImage.Question);
 
-            var res = MessageBox.Show("Are you sure want to delete selected host?", "Confirmation!", MessageBoxButton.YesNo, MessageBoxImage.Question);
-
-            host.Deleted = res == MessageBoxResult.Yes;
+            host.Deleted = confirmation == MessageBoxResult.Yes;
 
             e.Handled = true;
+        }
+
+        private void Window_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.Key == Key.F5)
+            {
+                _ = Refresh();
+            }
         }
     }
 }
