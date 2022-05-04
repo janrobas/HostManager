@@ -3,10 +3,19 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:HostManager"
+        xmlns:vm="clr-namespace:HostManager.ViewModels"
         mc:Ignorable="d"
-        Title="Hosts Enabler Disabler" Height="460" Width="800" Icon="/icon.png" KeyDown="Window_KeyDown">
-    <DataGrid AutoGenerateColumns="False" x:Name="HostsDataGrid" ItemsSource="{Binding Path=HostCollection, Mode=TwoWay}" GridLinesVisibility="None" FontSize="14" PreviewKeyDown="HostsDataGrid_PreviewKeyDown">
+        Title="Hosts Enabler Disabler" Height="460" Width="800" Icon="/icon.png">
+    <Window.DataContext>
+        <vm:MainWindowViewModel />
+    </Window.DataContext>
+    <Window.InputBindings>
+        <KeyBinding Key="F5" Command="{Binding Path=RefreshCommand}" />
+    </Window.InputBindings>
+    <DataGrid AutoGenerateColumns="False" x:Name="HostsDataGrid" ItemsSource="{Binding Path=HostCollection, Mode=TwoWay}" GridLinesVisibility="None" FontSize="14" SelectedItem="{Binding SelectedItem}">
+        <DataGrid.InputBindings>
+            <KeyBinding Key="Delete" Command="{Binding Path=DeleteCommand}" />
+        </DataGrid.InputBindings>
         <DataGrid.CellStyle>
             <Style TargetType="DataGridCell">
                 <Setter Property="Opacity" Value="{Binding Opacity}" />
