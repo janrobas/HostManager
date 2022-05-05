@@ -12,7 +12,7 @@
     <Window.InputBindings>
         <KeyBinding Key="F5" Command="{Binding Path=RefreshCommand}" />
     </Window.InputBindings>
-    <DataGrid AutoGenerateColumns="False" x:Name="HostsDataGrid" ItemsSource="{Binding Path=HostCollection, Mode=TwoWay}" GridLinesVisibility="None" FontSize="14" SelectedItem="{Binding SelectedItem}">
+    <DataGrid AutoGenerateColumns="False" x:Name="HostsDataGrid" ItemsSource="{Binding Path=HostCollection, Mode=TwoWay}" GridLinesVisibility="None" FontSize="14" SelectedItem="{Binding SelectedItem}" Background="#FFF0F0F0" SelectionMode="Single">
         <DataGrid.InputBindings>
             <KeyBinding Key="Delete" Command="{Binding Path=DeleteCommand}" />
         </DataGrid.InputBindings>

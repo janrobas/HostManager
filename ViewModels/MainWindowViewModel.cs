@@ -8,7 +8,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Controls;
 using System.Windows.Input;
 using Path = System.IO.Path;
 
@@ -102,7 +101,7 @@ namespace HostManager.ViewModels
                     }
                     else
                     {
-                        App.Current.Dispatcher.Invoke(() => this.HostCollection.Remove(host));
+                        Application.Current.Dispatcher.Invoke(() => this.HostCollection.Remove(host));
                     }
                 }
 
@@ -159,7 +158,7 @@ namespace HostManager.ViewModels
             {
                 refreshSemaphore.Wait(cancellationToken);
 
-                App.Current.Dispatcher.Invoke(() => this.HostCollection.Clear());
+                Application.Current.Dispatcher.Invoke(() => this.HostCollection.Clear());
 
                 for (int lineNumber = 0; lineNumber < lines.Count; lineNumber++)
                 {
@@ -199,7 +198,7 @@ namespace HostManager.ViewModels
                     {
                         hostModel.Clean();
 
-                        App.Current.Dispatcher.Invoke(() => this.HostCollection.Add(hostModel));
+                        Application.Current.Dispatcher.Invoke(() => this.HostCollection.Add(hostModel));
                     }
                 }
             }
@@ -221,32 +220,6 @@ namespace HostManager.ViewModels
             var confirmation = MessageBox.Show($"Are you sure want to delete selected host {this.SelectedItem.Host}?", "Confirmation", MessageBoxButton.YesNo, MessageBoxImage.Question);
 
             selectedItem.Deleted = confirmation == MessageBoxResult.Yes;
-        }
-
-        private void HostsDataGrid_PreviewKeyDown(object sender, KeyEventArgs e)
-        {
-            if (e.Key != Key.Delete)
-            {
-                return;
-            }
-
-            if (sender is not DataGrid)
-            {
-                return;
-            }
-
-            var grid = sender as DataGrid;
-
-            if (grid.SelectedItem is not HostModel host)
-            {
-                return;
-            }
-
-            var confirmation = MessageBox.Show($"Are you sure want to delete selected host {host.Host}?", "Confirmation", MessageBoxButton.YesNo, MessageBoxImage.Question);
-
-            host.Deleted = confirmation == MessageBoxResult.Yes;
-
-            e.Handled = true;
         }
     }
 }
