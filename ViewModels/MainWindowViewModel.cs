@@ -93,7 +93,7 @@ namespace HostManager.ViewModels
                     host.LineNumber = lines.Count - 1;
                 }
 
-                foreach (var host in this.HostCollection.Where(x => x.Deleted))
+                foreach (var host in this.HostCollection.Where(x => x.Deleted).ToList())
                 {
                     if (host.LineNumber.HasValue)
                     {
@@ -211,14 +211,16 @@ namespace HostManager.ViewModels
 
         private void Delete()
         {
-            if (this.SelectedItem is null)
+            var selectedItem = this.SelectedItem;
+
+            if (selectedItem is null)
             {
                 return;
             }
 
             var confirmation = MessageBox.Show($"Are you sure want to delete selected host {this.SelectedItem.Host}?", "Confirmation", MessageBoxButton.YesNo, MessageBoxImage.Question);
 
-            this.SelectedItem.Deleted = confirmation == MessageBoxResult.Yes;
+            selectedItem.Deleted = confirmation == MessageBoxResult.Yes;
         }
 
         private void HostsDataGrid_PreviewKeyDown(object sender, KeyEventArgs e)
