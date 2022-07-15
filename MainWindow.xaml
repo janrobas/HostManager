@@ -13,10 +13,38 @@
         <KeyBinding Key="F5" Command="{Binding Path=RefreshCommand}" />
     </Window.InputBindings>
     <DockPanel>
-        <ToolBar DockPanel.Dock="Top">
-            <Button Content="Add" Command="{Binding Path=AddCommand}" />
-            <Button Content="Delete" Command="{Binding Path=DeleteCommand}" />
-            <Button Content="Refresh" Command="{Binding Path=RefreshCommand}" />
+        <ToolBar DockPanel.Dock="Top" ToolBarTray.IsLocked="True" Padding="2,2,2,2">
+            <Button Command="{Binding Path=AddCommand}">
+                <StackPanel>
+                    <Image Margin="5,5,5,5">
+                        <Image.Source>
+                            <BitmapImage UriSource="images/add.png" />
+                        </Image.Source>
+                    </Image>
+                    <TextBlock>Add</TextBlock>
+                </StackPanel>
+            </Button>
+            <!--<Button Content="Insert" Command="{Binding Path=InsertCommand}" IsEnabled="{Binding IsSelectedItem}" />-->
+            <Button Command="{Binding Path=DeleteCommand}" IsEnabled="{Binding IsSelectedItem}">
+                <StackPanel>
+                    <Image Margin="5,5,5,5">
+                        <Image.Source>
+                            <BitmapImage UriSource="images/delete.png" />
+                        </Image.Source>
+                    </Image>
+                    <TextBlock>Delete</TextBlock>
+                </StackPanel>
+            </Button>
+            <Button Command="{Binding Path=RefreshCommand}">
+                <StackPanel>
+                    <Image Margin="5,5,5,5">
+                        <Image.Source>
+                            <BitmapImage UriSource="images/refresh.png" />
+                        </Image.Source>
+                    </Image>
+                    <TextBlock>Refresh</TextBlock>
+                </StackPanel>
+            </Button>
         </ToolBar>
         <DataGrid AutoGenerateColumns="False" x:Name="HostsDataGrid" ItemsSource="{Binding Path=HostCollection, Mode=TwoWay}" GridLinesVisibility="None" FontSize="14" SelectedItem="{Binding SelectedItem}" Background="#FFF0F0F0" SelectionMode="Single" CanUserAddRows="False">
             <DataGrid.InputBindings>

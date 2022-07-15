@@ -10,10 +10,19 @@
 
   <ItemGroup>
     <None Remove="icon.png" />
+    <None Remove="Images\add.png" />
+    <None Remove="Images\delete.png" />
+    <None Remove="Images\refresh.png" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="Images\refresh.png" />
   </ItemGroup>
 
   <ItemGroup>
     <Resource Include="icon.png" />
+    <Resource Include="Images\add.png" />
+    <Resource Include="Images\delete.png" />
   </ItemGroup>
 
 </Project>

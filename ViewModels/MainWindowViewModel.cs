@@ -13,12 +13,23 @@ using Path = System.IO.Path;
 
 namespace HostManager.ViewModels
 {
-    public class MainWindowViewModel : IDisposable
+    public class MainWindowViewModel : NotifyPropertyChangedBase, IDisposable
     {
         public ObservableCollection<HostModel> HostCollection { get; set; } = new();
-        public HostModel SelectedItem { get; set; } = null;
+        private HostModel selectedItem = null;
+        public HostModel SelectedItem
+        {
+            get => this.selectedItem;
+            set 
+            {
+                this.selectedItem = value;
+                OnPropertyChanged("IsSelectedItem");
+            }
+        }
+        public bool IsSelectedItem { get => this.selectedItem is not null; }
         public ICommand RefreshCommand { get; private set; }
         public ICommand AddCommand { get; private set; }
+        public ICommand InsertCommand { get; private set; }
         public ICommand DeleteCommand { get; private set; }
 
         private readonly FileSystemWatcher hostsFileWatcher;
@@ -47,6 +58,7 @@ namespace HostManager.ViewModels
             this.RefreshCommand = new SimpleCommand(() => _ = Refresh());
             this.DeleteCommand = new SimpleCommand(() => Delete());
             this.AddCommand = new SimpleCommand(() => Add());
+            this.InsertCommand = new SimpleCommand(() => Insert());
         }
 
         public void Dispose()
@@ -64,6 +76,7 @@ namespace HostManager.ViewModels
                 return;
             }
 
+            // TODO: this logic prevent implementing reordering
             bool mustRefresh = false;
             List<string> lines = null;
             try
@@ -227,6 +240,16 @@ namespace HostManager.ViewModels
         private void Add()
         {
             Application.Current.Dispatcher.Invoke(() => this.HostCollection.Add(new HostModel()));
+        }
+
+        private void Insert()
+        {
+            if (this.SelectedItem is null)
+            {
+                return;
+            }
+
+            Application.Current.Dispatcher.Invoke(() => this.HostCollection.Insert(this.HostCollection.IndexOf(this.SelectedItem) + 1, new HostModel()));
         }
     }
 }
