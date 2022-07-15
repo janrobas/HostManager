@@ -18,6 +18,7 @@ namespace HostManager.ViewModels
         public ObservableCollection<HostModel> HostCollection { get; set; } = new();
         public HostModel SelectedItem { get; set; } = null;
         public ICommand RefreshCommand { get; private set; }
+        public ICommand AddCommand { get; private set; }
         public ICommand DeleteCommand { get; private set; }
 
         private readonly FileSystemWatcher hostsFileWatcher;
@@ -45,6 +46,7 @@ namespace HostManager.ViewModels
 
             this.RefreshCommand = new SimpleCommand(() => _ = Refresh());
             this.DeleteCommand = new SimpleCommand(() => Delete());
+            this.AddCommand = new SimpleCommand(() => Add());
         }
 
         public void Dispose()
@@ -220,6 +222,11 @@ namespace HostManager.ViewModels
             var confirmation = MessageBox.Show($"Are you sure want to delete selected host {this.SelectedItem.Host}?", "Confirmation", MessageBoxButton.YesNo, MessageBoxImage.Question);
 
             selectedItem.Deleted = confirmation == MessageBoxResult.Yes;
+        }
+
+        private void Add()
+        {
+            Application.Current.Dispatcher.Invoke(() => this.HostCollection.Add(new HostModel()));
         }
     }
 }

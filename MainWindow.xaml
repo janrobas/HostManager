@@ -12,36 +12,44 @@
     <Window.InputBindings>
         <KeyBinding Key="F5" Command="{Binding Path=RefreshCommand}" />
     </Window.InputBindings>
-    <DataGrid AutoGenerateColumns="False" x:Name="HostsDataGrid" ItemsSource="{Binding Path=HostCollection, Mode=TwoWay}" GridLinesVisibility="None" FontSize="14" SelectedItem="{Binding SelectedItem}" Background="#FFF0F0F0" SelectionMode="Single">
-        <DataGrid.InputBindings>
-            <KeyBinding Key="Delete" Command="{Binding Path=DeleteCommand}" />
-        </DataGrid.InputBindings>
-        <DataGrid.CellStyle>
-            <Style TargetType="DataGridCell">
-                <Setter Property="Opacity" Value="{Binding Opacity}" />
-                <Setter Property="Padding" Value="4"/>
-                <Setter Property="Template">
-                    <Setter.Value>
-                        <ControlTemplate TargetType="{x:Type DataGridCell}">
-                            <Border Padding="{TemplateBinding Padding}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" Background="{TemplateBinding Background}" SnapsToDevicePixels="True">
-                                <ContentPresenter SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}"/>
-                            </Border>
-                        </ControlTemplate>
-                    </Setter.Value>
-                </Setter>
-            </Style>
-        </DataGrid.CellStyle>
-        <DataGrid.Columns>
-            <DataGridTemplateColumn Header="Enabled">
-                <DataGridTemplateColumn.CellTemplate>
-                    <DataTemplate>
-                        <CheckBox HorizontalAlignment="Center" VerticalAlignment="Center" IsChecked="{Binding Path=Enabled, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
-                    </DataTemplate>
-                </DataGridTemplateColumn.CellTemplate>
-            </DataGridTemplateColumn>
-            <DataGridTextColumn Header="Host" Binding="{Binding Host}"></DataGridTextColumn>
-            <DataGridTextColumn Header="Address" Binding="{Binding Address}"></DataGridTextColumn>
-            <DataGridTextColumn Header="Comment" Binding="{Binding Comment}"></DataGridTextColumn>
-        </DataGrid.Columns>
-    </DataGrid>
+    <DockPanel>
+        <ToolBar DockPanel.Dock="Top">
+            <Button Content="Add" Command="{Binding Path=AddCommand}" />
+            <Button Content="Delete" Command="{Binding Path=DeleteCommand}" />
+            <Button Content="Refresh" Command="{Binding Path=RefreshCommand}" />
+        </ToolBar>
+        <DataGrid AutoGenerateColumns="False" x:Name="HostsDataGrid" ItemsSource="{Binding Path=HostCollection, Mode=TwoWay}" GridLinesVisibility="None" FontSize="14" SelectedItem="{Binding SelectedItem}" Background="#FFF0F0F0" SelectionMode="Single" CanUserAddRows="False">
+            <DataGrid.InputBindings>
+                <KeyBinding Key="Delete" Command="{Binding Path=DeleteCommand}" />
+                <KeyBinding Key="Insert" Command="{Binding Path=AddCommand}" />
+            </DataGrid.InputBindings>
+            <DataGrid.CellStyle>
+                <Style TargetType="DataGridCell">
+                    <Setter Property="Opacity" Value="{Binding Opacity}" />
+                    <Setter Property="Padding" Value="4"/>
+                    <Setter Property="Template">
+                        <Setter.Value>
+                            <ControlTemplate TargetType="{x:Type DataGridCell}">
+                                <Border Padding="{TemplateBinding Padding}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" Background="{TemplateBinding Background}" SnapsToDevicePixels="True">
+                                    <ContentPresenter SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}"/>
+                                </Border>
+                            </ControlTemplate>
+                        </Setter.Value>
+                    </Setter>
+                </Style>
+            </DataGrid.CellStyle>
+            <DataGrid.Columns>
+                <DataGridTemplateColumn Header="Enabled">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <CheckBox HorizontalAlignment="Center" VerticalAlignment="Center" IsChecked="{Binding Path=Enabled, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+                <DataGridTextColumn Header="Host" Binding="{Binding Host}"></DataGridTextColumn>
+                <DataGridTextColumn Header="Address" Binding="{Binding Address}"></DataGridTextColumn>
+                <DataGridTextColumn Header="Comment" Binding="{Binding Comment}"></DataGridTextColumn>
+            </DataGrid.Columns>
+        </DataGrid>
+    </DockPanel>
 </Window>
